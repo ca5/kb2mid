@@ -24,17 +24,18 @@ KeyboardController keyboard1(usbhost);
 KeyboardController keyboard2(usbhost);
 
 // the MIDI channel number to send messages
-const int channel = 1;
+int channel = 1;
+int lastNote = 0;
 
 void setup()
 {
   while (!Serial) ; // wait for Arduino Serial Monitor
   Serial.println("kb2mid");
   usbhost.begin();
-  keyboard1.attachPress(OnPress);
-  keyboard2.attachPress(OnPress);
-  keyboard1.attachRelease(OnRelease);
-  keyboard2.attachRelease(OnRelease);
+  keyboard1.attachPress(onPress);
+  keyboard2.attachPress(onPress);
+  keyboard1.attachRelease(onRelease);
+  keyboard2.attachRelease(onRelease);
 }
 
 
@@ -50,10 +51,6 @@ void loop()
 
 int midimap(int key){
   switch(key){
-    case (int)'a':
-    case (int)'A':
-    case (int)';':
-    case (int)':':
     case 32: //space
       Serial.println("BD");
       return NOTE_BD;
@@ -62,8 +59,29 @@ int midimap(int key){
     case (int)'G':
     case (int)'h':
     case (int)'H':
-      Serial.println("OHH");
-      return NOTE_OHH;
+      Serial.println("LastNote");
+      return lastNote;
+
+    case (int)'b':
+    case (int)'B':
+    case (int)'n':
+    case (int)'N':
+      Serial.println("LastNote");
+      return lastNote;
+
+    case (int)'t':
+    case (int)'T':
+    case (int)'y':
+    case (int)'Y':
+      Serial.println("LastNote");
+      return lastNote;
+
+    case (int)'5':
+    case (int)'%':
+    case (int)'6':
+    case (int)'^':
+      Serial.println("LastNote");
+      return lastNote;
 
     case (int)'f':
     case (int)'F':
@@ -86,10 +104,10 @@ int midimap(int key){
       Serial.println("SD2");
       return NOTE_SD2;
 
-    case (int)'b':
-    case (int)'B':
-    case (int)'n':
-    case (int)'N':
+    case (int)'a':
+    case (int)'A':
+    case (int)';':
+    case (int)':':
       Serial.println("SS");
       return NOTE_SS;
 
@@ -97,37 +115,30 @@ int midimap(int key){
     case (int)'V':
     case (int)'m':
     case (int)'M':
+      Serial.println("OHH");
+      return NOTE_OHH;
+
+    case (int)'c':
+    case (int)'C':
+    case (int)',':
+    case (int)'<':
       Serial.println("PHH");
       return NOTE_PHH;
+
+    case (int)'x':
+    case (int)'X':
+    case (int)'.':
+    case (int)'>':
+      Serial.println("LastNote");
+      return lastNote;
 
     case (int)'z':
     case (int)'Z':
     case (int)'/':
     case (int)'?':
     case 10: //enter
-      Serial.println("CC");
-      return NOTE_CC;
-
-    case (int)'x':
-    case (int)'X':
-    case (int)'.':
-    case (int)'>':
-      Serial.println("SC");
-      return NOTE_SC;
-
-    case (int)'c':
-    case (int)'C':
-    case (int)',':
-    case (int)'<':
-      Serial.println("RC");
-      return NOTE_RC;
-
-    case (int)'t':
-    case (int)'T':
-    case (int)'y':
-    case (int)'Y':
-      Serial.println("RB");
-      return NOTE_RB;
+      Serial.println("LastNote");
+      return lastNote;
 
     case (int)'r':
     case (int)'R':
@@ -156,11 +167,40 @@ int midimap(int key){
     case (int)'P':
       Serial.println("FT");
       return NOTE_FT;
+
+    case (int)'4':
+    case (int)'$':
+    case (int)'7':
+    case (int)'&':
+      Serial.println("RC");
+      return NOTE_RC;
+
+    case (int)'3':
+    case (int)'#':
+    case (int)'8':
+    case (int)'*':
+      Serial.println("SC");
+      return NOTE_SC;
+
+    case (int)'2':
+    case (int)'@':
+    case (int)'9':
+    case (int)'(':
+      Serial.println("RB");
+      return NOTE_RB;
+
+    case (int)'1':
+    case (int)'!':
+    case (int)'0':
+    case (int)')':
+      Serial.println("CC");
+      return NOTE_CC;
+
   }
   return 0;
 }
 
-void OnPress(int key)
+void onPress(int key)
 {
   Serial.print("key '");
   Serial.print((char)key);
@@ -168,11 +208,12 @@ void OnPress(int key)
   Serial.println(key);
 
   if(midimap(key) > 0){
+    lastNote = midimap(key);
     usbMIDI.sendNoteOn(midimap(key), 100, channel); 
   }
 }
 
-void OnRelease(int key)
+void onRelease(int key)
 {
   Serial.print("release key '");
   Serial.print((char)key);
